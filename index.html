@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parlons français</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#faf6ef;--card:#fff;--ink:#1d2433;--mute:#6b7280;--blue:#1f3a8a;--red:#c8323c;--me:#1f3a8a;--meink:#fff;--line:#e6dfd2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151d;--card:#1b2030;--ink:#eef0f6;--mute:#9aa3b5;--blue:#8fa8ff;--red:#ff6b74;--me:#3b57c4;--meink:#fff;--line:#2a3147}}
+:root[data-theme="dark"]{--bg:#12151d;--card:#1b2030;--ink:#eef0f6;--mute:#9aa3b5;--blue:#8fa8ff;--red:#ff6b74;--me:#3b57c4;--meink:#fff;--line:#2a3147}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;display:flex;flex-direction:column;max-width:720px;margin-inline:auto}
+header{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:22px;font-weight:700}
+h1 span{color:var(--red)}
+.sub{color:var(--mute);font:13px system-ui,sans-serif;margin-top:2px}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font:13px system-ui,sans-serif}
+select,button,input{font:inherit}
+select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:5px 8px;max-width:100%}
+label.chk{display:flex;align-items:center;gap:5px;color:var(--mute)}
+#log{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.m{max-width:85%;padding:10px 14px;border-radius:16px;line-height:1.45;font-size:17px;white-space:pre-wrap}
+.bot{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
+.usr{align-self:flex-end;background:var(--me);color:var(--meink);border-bottom-right-radius:4px}
+.note{display:block;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font:13px system-ui,sans-serif;color:var(--mute)}
+.replay{display:inline-block;margin-top:6px;background:none;border:none;color:var(--blue);font:13px system-ui,sans-serif;cursor:pointer;padding:0}
+.hint{align-self:center;color:var(--mute);font:14px system-ui,sans-serif;text-align:center;padding:20px}
+.start{align-self:center;background:var(--blue);color:#fff;border:none;border-radius:999px;padding:12px 26px;font:600 16px system-ui,sans-serif;cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .start{color:#12151d}}
+:root[data-theme="dark"] .start{color:#12151d}
+footer{padding:10px 12px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;background:var(--bg)}
+#txt{flex:1;min-width:0;padding:11px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px}
+.ic{width:46px;height:46px;flex:none;border-radius:50%;border:none;cursor:pointer;background:var(--blue);color:#fff;font-size:20px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ic{color:#12151d}}
+:root[data-theme="dark"] .ic{color:#12151d}
+.ic.rec{background:var(--red);animation:p 1s infinite;color:#fff}
+@keyframes p{50%{transform:scale(1.08)}}
+.ic:disabled,#txt:disabled{opacity:.5}
+</style>
+</head>
+<body>
+<header>
+  <h1>Parlons <span>français</span> 🇫🇷</h1>
+  <div class="sub">Conversation vocale avec Camille, ta partenaire native de Paris.</div>
+  <div class="opts">
+    <select id="lvl" aria-label="Niveau"><option value="A1-A2 (débutant : phrases courtes et vocabulaire simple)">Débutant</option><option value="B1-B2 (intermédiaire : phrases naturelles, quelques expressions idiomatiques)" selected>Intermédiaire</option><option value="C1-C2 (avancé : registre soutenu, argot courant, idiomes, débit naturel)">Avancé</option></select>
+    <select id="voice" aria-label="Voix"></select>
+    <select id="spd" aria-label="Vitesse"><option value=".8">Lent</option><option value=".95" selected>Naturel</option><option value="1.1">Rapide</option></select>
+    <label class="chk"><input type="checkbox" id="tr" checked> Notes en anglais</label>
+  </div>
+</header>
+<div id="log"><div class="hint">Appuie sur « Commencer », puis parle avec le micro 🎤 ou écris.<br>Camille te répond à voix haute et corrige tes erreurs avec douceur.</div><button class="start" id="go">Commencer</button></div>
+<footer>
+  <button class="ic" id="mic" title="Parler">🎤</button>
+  <input id="txt" placeholder="Écris en français…" autocomplete="off" disabled>
+  <button class="ic" id="snd" title="Envoyer" disabled>➤</button>
+</footer>
+<script>
+const SYS=`Tu es Camille, une Parisienne de 28 ans, prof de français chaleureuse et curieuse. Tu discutes à voix haute avec un apprenant. Règles :
+- Parle UNIQUEMENT en français naturel, comme une vraie native : contractions à l'oral (« t'as », « j'sais pas » seulement si niveau avancé), connecteurs (« alors », « du coup », « bref »), rythme vivant.
+- Réponses courtes : 1 à 3 phrases, puis UNE question pour relancer. Pas d'émojis, pas de listes, pas de markdown.
+- Adapte-toi au niveau : `;
+const $=id=>document.getElementById(id);
+const log=$('log'),txt=$('txt'),snd=$('snd'),mic=$('mic');
+let hist=[],busy=false,sampleFn=null,voices=[];
+const FMT=`
+- Format STRICT : ta réponse en français, puis le séparateur || puis une note en anglais (max 20 mots) : soit la traduction très brève, soit la correction d'une erreur de l'apprenant (« Say: … »). Si rien à noter, laisse la note vide après ||.`;
+
+function loadVoices(){
+  voices=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));
+  const pref=/Google fran|Am[ée]lie|Audrey|Thomas|Marie|Hortense|Denise|Vivienne|Remy|Henri|Eloise|Premium|Enhanced|Siri/i;
+  voices.sort((a,b)=>(/fr[-_]FR/i.test(b.lang)-/fr[-_]FR/i.test(a.lang))||(pref.test(b.name)-pref.test(a.name)));
+  $('voice').innerHTML=voices.length?voices.map((v,i)=>`<option value="${i}">${v.name} (${v.lang})</option>`).join(''):'<option>Voix par défaut</option>';
+}
+try{loadVoices();speechSynthesis.onvoiceschanged=loadVoices}catch(e){}
+
+function speak(t){
+  try{
+    speechSynthesis.cancel();
+    const clean=t.replace(/[*_#`]/g,'').replace(/\s+/g,' ').trim();
+    if(!clean)return;
+    const u=new SpeechSynthesisUtterance(clean);
+    const v=voices[+$('voice').value];
+    if(v){u.voice=v;u.lang=v.lang}else u.lang='fr-FR';
+    u.rate=parseFloat($('spd').value);u.pitch=1;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function add(cls,text,note){
+  const d=document.createElement('div');d.className='m '+cls;
+  d.textContent=text;
+  if(note&&$('tr').checked){const n=document.createElement('span');n.className='note';n.textContent=note;d.appendChild(n)}
+  if(cls==='bot'){const b=document.createElement('button');b.className='replay';b.textContent='🔊 Réécouter';b.onclick=()=>speak(text);d.appendChild(b)}
+  log.appendChild(d);log.scrollTop=log.scrollHeight;return d;
+}
+function setBusy(b){busy=b;txt.disabled=snd.disabled=b}
+async function ask(userText,hidden){
+  if(!sampleFn){add('bot','Désolée, Claude n’est pas disponible dans cette vue.');return}
+  setBusy(true);
+  if(!hidden){hist.push({role:'user',content:userText});add('usr',userText)}
+  const turns=hist.map(x=>({...x}));
+  turns[0].content=SYS+$('lvl').value+'.'+FMT+'\n\nMessage de l\'apprenant : '+turns[0].content;
+  const bubble=add('bot','…');
+  try{
+    const r=await sampleFn(turns,{cache:false,onText:({text})=>{bubble.firstChild.textContent=text.split('||')[0]||'…';log.scrollTop=log.scrollHeight}});
+    const [fr,note]=r.text.split('||').map(s=>s.trim());
+    hist.push({role:'assistant',content:r.text});
+    bubble.remove();add('bot',fr,note);speak(fr);
+  }catch(e){
+    bubble.textContent=e&&e.code==='not_granted'?'Autorise Claude à répondre pour continuer.':'Oups, un petit souci. Réessaie !';
+    if(!hidden)hist.pop();
+  }
+  setBusy(false);txt.focus();
+}
+function submit(){const t=txt.value.trim();if(!t||busy)return;txt.value='';ask(t)}
+snd.onclick=submit;txt.onkeydown=e=>{if(e.key==='Enter')submit()};
+
+$('go').onclick=async()=>{
+  $('go').remove();log.innerHTML='';
+  try{const c=window.claude&&await window.claude.use('sample');sampleFn=c}catch(e){}
+  hist=[{role:'user',content:'Salut ! Présente-toi en une phrase et pose-moi une première question simple.'}];
+  ask('',true);
+  // hidden opening: the first user turn is the kickoff prompt
+};
+
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){mic.style.display='none'}else{
+  let rec=null,on=false;
+  mic.onclick=()=>{
+    if(busy&&!on)return;
+    if(on){rec.stop();return}
+    speechSynthesis.cancel();
+    rec=new SR();rec.lang='fr-FR';rec.interimResults=true;rec.continuous=false;
+    rec.onstart=()=>{on=true;mic.classList.add('rec')};
+    rec.onresult=e=>{let s='';for(const r of e.results)s+=r[0].transcript;txt.value=s;if(e.results[e.results.length-1].isFinal)submit()};
+    rec.onend=()=>{on=false;mic.classList.remove('rec')};
+    rec.onerror=()=>{on=false;mic.classList.remove('rec')};
+    try{rec.start()}catch(e){}
+  };
+}
+</script>
+</body>
+</html>
